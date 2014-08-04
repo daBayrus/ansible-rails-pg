@@ -1,0 +1,6 @@
+---
+- include: essentials.yml
+- include: locale.yml
+- include: postgresql.yml
+- include: rbenv.yml
+- include: ruby.yml

@@ -1,0 +1,20 @@
+---
+- name: ensure apt-get is up to date
+  apt: update_cache=yes cache_valid_time=86400
+  sudo: yes
+
+- name: add Python software properties
+  apt: pkg=python-software-properties state=present
+  sudo: yes
+
+- name: ensure build-essential is installed
+  apt: pkg=build-essential state=present
+  sudo: yes
+
+- name: ensure git is installed
+  apt: pkg=git state=latest
+  sudo: yes
+
+- name: ensure curl is installed
+  apt: pkg=curl state=present
+  sudo: yes

@@ -1,0 +1,18 @@
+---
+- name: install rbenv
+  git: repo=git://github.com/sstephenson/rbenv.git dest=~{{ ruby_user }}/.rbenv
+
+- name: create fragments bash dir
+  file: dest=~{{ ruby_user }}/.bash.d/ state=directory
+
+- name: install rbenv bash file
+  copy: src=rbenv.bash dest=~{{ ruby_user }}/.bash.d/rbenv.bash mode=700 owner={{ ruby_user }}
+
+- name: source rbenv bash file in dot bashrc
+  lineinfile: dest=~{{ ruby_user }}/.bashrc regexp="rbenv" insertafter=EOF line="source ~/.bash.d/rbenv.bash" create=yes
+
+- name: create plugin directory
+  file: path=~{{ ruby_user }}/.rbenv/plugins/ owner={{ ruby_user }} group={{ ruby_user }} mode=0755 state=directory
+
+- name: install ruby-build
+  git: repo=git://github.com/sstephenson/ruby-build.git dest=~{{ ruby_user }}/.rbenv/plugins/ruby-build

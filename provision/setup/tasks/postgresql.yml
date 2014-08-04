@@ -1,0 +1,57 @@
+---
+- name: ensure PostgreSQL and dependencies are installed
+  apt: pkg={{ item }} state=present
+  sudo: yes
+  with_items:
+    - postgresql
+    - postgresql-contrib
+    - libpq-dev
+    - python-psycopg2
+  environment:
+    LANGUAGE: "{{ locale_lang }}"
+    LANG: "{{ locale_lang }}"
+    LC_ALL: "{{ locale_lang }}"
+
+- name: add user to group to enable sudo
+  action: user name=postgres groups=admin append=true
+  sudo: yes
+
+- name: ensure user does not have unnecessary privilege
+  postgresql_user: name={{ appname }} password="w1ndf@ll" role_attr_flags=NOSUPERUSER,CREATEDB
+  sudo: yes
+  sudo_user: postgres
+
+- name: create development and test databases
+  postgresql_db: name={{ item }}
+                 owner={{ appname }}
+  sudo: yes
+  sudo_user: postgres
+  with_items:
+    - "{{ appname }}_development"
+    - "{{ appname }}_test"
+
+- name: give user access to the new databases
+  postgresql_user: db={{ item }} name={{ appname }} priv=ALL
+  sudo: yes
+  sudo_user: postgres
+  with_items:
+      - "{{ appname }}_development"
+      - "{{ appname }}_test"
+
+- name: ensure PostgreSQL is listening on all localhost
+  lineinfile: dest=/etc/postgresql/9.3/main/postgresql.conf
+              regexp='^#?listen_addresses\s*='
+              line="listen_addresses = '*'"
+              state=present
+  notify: restart postgresql
+  sudo: yes
+  sudo_user: postgres
+
+- name: ensure PostgreSQL is listening to Vagrant
+  lineinfile: dest=/etc/postgresql/9.3/main/pg_hba.conf
+              regexp='host\s+all\s+all\s+127.0.0.1/32\s+md5'
+              line='host all all 0.0.0.0/0 trust'
+              insertbefore=BOF
+  notify: restart postgresql
+  sudo: yes
+  sudo_user: postgres

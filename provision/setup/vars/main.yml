@@ -1,0 +1,5 @@
+---
+appname: appname
+ruby_version: 2.1.2
+ruby_user: vagrant
+locale_lang: en_US.UTF-8

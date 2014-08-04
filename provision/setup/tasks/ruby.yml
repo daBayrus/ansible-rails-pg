@@ -1,0 +1,37 @@
+---
+- name: install ruby build dependencies
+  apt: pkg={{ item }} state=latest install_recommends=no
+  with_items:
+    - libcurl4-openssl-dev
+    - libreadline6-dev
+    - libssl-dev
+    - libxml2-dev
+    - libxslt1-dev
+    - zlib1g-dev
+  sudo: yes
+
+- name: check if ruby {{ ruby_version }} is already installed
+  shell: ~{{ ruby_user }}/.rbenv/bin/rbenv versions | grep {{ ruby_version }}
+  register: ruby_check
+  ignore_errors: yes
+
+- name: install ruby {{ ruby_version }}
+  shell: ~{{ ruby_user }}/.rbenv/bin/rbenv install {{ ruby_version }}
+  when: ruby_check|failed
+
+- name: set global ruby {{ ruby_version }}
+  shell: ~{{ ruby_user }}/.rbenv/bin/rbenv global {{ ruby_version }}
+  when: ruby_check|failed
+
+- name: rbenv rehash to install shims
+  shell: ~{{ ruby_user }}/.rbenv/bin/rbenv rehash
+  when: ruby_check|failed
+
+- name: set gemrc
+  copy: src=gemrc dest=~{{ ruby_user }}/.gemrc mode=750 owner={{ ruby_user }} group={{ ruby_user }}
+
+- name: install bundler
+  shell: ~{{ ruby_user }}/.rbenv/shims/gem install bundler
+
+- name: rbenv rehash for bundler shim
+  shell: ~{{ ruby_user }}/.rbenv/bin/rbenv rehash
